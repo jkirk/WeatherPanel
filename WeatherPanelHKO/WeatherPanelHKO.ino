@@ -69,7 +69,7 @@ time_t next_download_photo_time = 0;
 time_t next_download_radar_time = 0;
 time_t next_download_satellite_time = 0;
 
-#include <SD_MMC.h>
+#include <SD.h>
 #define SD_CS 1
 #define SD_MOSI 2
 #define SD_SCK 3
@@ -179,9 +179,9 @@ void drawClock()
     struct tm *tmPast = localtime(&minute_i);
     sprintf(path, PHOTO_FILE_TEMPLATE, tmPast->tm_year + 1900, tmPast->tm_mon + 1, tmPast->tm_mday, tmPast->tm_hour, tmPast->tm_min);
     // Serial.println(path);
-    if (SD_MMC.exists(path))
+    if (SD.exists(path))
     {
-      if (jpeg.open(path, jpegOpenSD_MMC, jpegClose, jpegRead, jpegSeek, JPEGDraw1))
+      if (jpeg.open(path, jpegOpenSD, jpegClose, jpegRead, jpegSeek, JPEGDraw1))
       {
         jpeg.setPixelType(RGB565_LITTLE_ENDIAN);
         jpeg.setCropArea(180, 44, 360, 360); // requested area
@@ -214,9 +214,9 @@ void drawClock()
     struct tm *tmPast = localtime(&minute_i);
     sprintf(path, RADAR_FILE_TEMPLATE, tmPast->tm_year + 1900, tmPast->tm_mon + 1, tmPast->tm_mday, tmPast->tm_hour, tmPast->tm_min);
     // Serial.println(path);
-    if (SD_MMC.exists(path))
+    if (SD.exists(path))
     {
-      if (jpeg.open(path, jpegOpenSD_MMC, jpegClose, jpegRead, jpegSeek, JPEGDraw2))
+      if (jpeg.open(path, jpegOpenSD, jpegClose, jpegRead, jpegSeek, JPEGDraw2))
       {
         jpeg.setPixelType(RGB565_BIG_ENDIAN);
         jpeg.setCropArea(20, 20, 360, 360); // requested area
@@ -239,9 +239,9 @@ void drawClock()
     struct tm *tmPast = localtime(&minute_i);
     sprintf(path, SATELLITE_FILE_TEMPLATE, tmPast->tm_year + 1900, tmPast->tm_mon + 1, tmPast->tm_mday, tmPast->tm_hour, tmPast->tm_min);
     // Serial.println(path);
-    if (SD_MMC.exists(path))
+    if (SD.exists(path))
     {
-      if (jpeg.open(path, jpegOpenSD_MMC, jpegClose, jpegRead, jpegSeek, JPEGDraw3))
+      if (jpeg.open(path, jpegOpenSD, jpegClose, jpegRead, jpegSeek, JPEGDraw3))
       {
         jpeg.setPixelType(RGB565_BIG_ENDIAN);
         jpeg.setCropArea(192, 192, 360, 360); // requested area
@@ -325,16 +325,16 @@ void setup()
   WiFi.mode(WIFI_STA);
   WiFiMulti.addAP(SSID_NAME, SSID_PASSWORD);
 
-  SD_MMC.setPins(SD_SCK, SD_MOSI, SD_MISO);
-  if (!SD_MMC.begin("/root", true /* mode1bit */, false /* format_if_mount_failed */, SDMMC_FREQ_HIGHSPEED))
+  SD.setPins(SD_SCK, SD_MOSI, SD_MISO);
+  if (!SD.begin("/root", true /* mode1bit */, false /* format_if_mount_failed */, SDMMC_FREQ_HIGHSPEED))
   {
     Serial.println("Card Mount Failed");
     delay(24 * 60 * 60 * 1000);
   }
   else
   {
-    Serial.printf("SD_MMC Card Mounted, space usage: %llu / %llu MB\n", SD_MMC.usedBytes() / (1024 * 1024), SD_MMC.totalBytes() / (1024 * 1024));
-    listDir(SD_MMC, "/", 4);
+    Serial.printf("SD Card Mounted, space usage: %llu / %llu MB\n", SD.usedBytes() / (1024 * 1024), SD.totalBytes() / (1024 * 1024));
+    listDir(SD, "/", 4);
     gfx1->setCursor(125, 145);
     gfx1->setTextColor(RGB565_GREEN);
     gfx1->print("SD");
@@ -375,18 +375,18 @@ void loop()
 
     rounding_time += gmtOffset_sec;
     struct tm *tmLocal = gmtime(&rounding_time);
-    SD_MMC.mkdir(PHOTO_FOLDER_L1);
+    SD.mkdir(PHOTO_FOLDER_L1);
     sprintf(path, PHOTO_FOLDER_L2_TEMPLATE, tmLocal->tm_year + 1900);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     sprintf(path, PHOTO_FOLDER_L3_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     sprintf(path, PHOTO_FOLDER_L4_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     // Serial.println(path);
     sprintf(path, PHOTO_FILE_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday, tmLocal->tm_hour, tmLocal->tm_min);
-    if (!SD_MMC.exists(path))
+    if (!SD.exists(path))
     {
-      https_fs_download(url, SD_MMC, path);
+      https_fs_download(url, SD, path);
     }
   }
 
@@ -403,18 +403,18 @@ void loop()
     struct tm *tmLocal = gmtime(&rounding_time);
     sprintf(url, RADAR_URL_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday, tmLocal->tm_hour, tmLocal->tm_min);
 
-    SD_MMC.mkdir(RADAR_FOLDER_L1);
+    SD.mkdir(RADAR_FOLDER_L1);
     sprintf(path, RADAR_FOLDER_L2_TEMPLATE, tmLocal->tm_year + 1900);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     sprintf(path, RADAR_FOLDER_L3_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     sprintf(path, RADAR_FOLDER_L4_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     // Serial.println(path);
     sprintf(path, RADAR_FILE_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday, tmLocal->tm_hour, tmLocal->tm_min);
-    if (!SD_MMC.exists(path))
+    if (!SD.exists(path))
     {
-      https_fs_download(url, SD_MMC, path);
+      https_fs_download(url, SD, path);
     }
   }
 
@@ -432,18 +432,18 @@ void loop()
 
     rounding_time += gmtOffset_sec;
     struct tm *tmLocal = gmtime(&rounding_time);
-    SD_MMC.mkdir(SATELLITE_FOLDER_L1);
+    SD.mkdir(SATELLITE_FOLDER_L1);
     sprintf(path, SATELLITE_FOLDER_L2_TEMPLATE, tmLocal->tm_year + 1900);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     sprintf(path, SATELLITE_FOLDER_L3_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     sprintf(path, SATELLITE_FOLDER_L4_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday);
-    SD_MMC.mkdir(path);
+    SD.mkdir(path);
     // Serial.println(path);
     sprintf(path, SATELLITE_FILE_TEMPLATE, tmLocal->tm_year + 1900, tmLocal->tm_mon + 1, tmLocal->tm_mday, tmLocal->tm_hour, tmLocal->tm_min);
-    if (!SD_MMC.exists(path))
+    if (!SD.exists(path))
     {
-      https_fs_download(url, SD_MMC, path);
+      https_fs_download(url, SD, path);
     }
   }
 
